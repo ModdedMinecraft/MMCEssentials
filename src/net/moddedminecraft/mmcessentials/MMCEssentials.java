@@ -19,6 +19,7 @@ import net.moddedminecraft.mmcessentials.commands.MMCECommand;
 import net.moddedminecraft.mmcessentials.commands.RebootCommand;
 import net.moddedminecraft.mmcessentials.listeners.CommandListener;
 import net.moddedminecraft.mmcessentials.listeners.PlayerListener;
+import net.moddedminecraft.mmcessentials.utils.MetricsLite;
 import net.moddedminecraft.mmcessentials.utils.Sboard;
 import net.moddedminecraft.mmcessentials.utils.ShutdownTask;
 import net.moddedminecraft.mmcessentials.utils.Util;
@@ -79,6 +80,12 @@ public class MMCEssentials extends JavaPlugin {
 	public static long startTimestamp;
 
 	public void onEnable() {
+		try {
+			MetricsLite metrics = new MetricsLite(this);
+			metrics.start();
+		} catch (IOException e) {
+			// Failed to submit the stats :-(
+		}
 		PluginManager pm = getPluginManager();
 		version = getDescription().getVersion();
 		name = getDescription().getName();

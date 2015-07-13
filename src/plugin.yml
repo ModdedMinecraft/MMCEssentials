@@ -1,6 +1,6 @@
 name: MMCEssentials
 main: net.moddedminecraft.mmcessentials.MMCEssentials
-version: 0.6
+version: 0.6.1
 author: Lee_lawd93
 depend: [ProtocolLib]
 commands:
