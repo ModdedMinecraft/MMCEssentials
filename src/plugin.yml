@@ -1,18 +1,30 @@
 name: MMCEssentials
 main: net.moddedminecraft.mmcessentials.MMCEssentials
-version: 0.6.1
+version: 0.9.5
 author: Lee_lawd93
 depend: [ProtocolLib]
 commands:
-   blockinfo:
-    description: Main command for MMC Essentials.
+  setprefix:
+    description: Set a prefix.
+    usage: /setprefix [prefix]
+  delprefix:
+    description: Delete a prefix.
+    usage: /delprefix
+  blockinfo:
+    description: get the block information.
     usage: /Blockfinfo
-   mmce:
+  mmce:
     description: Main command for MMC Essentials.
     usage: /MMCE help
-   reboot:
+  whois:
+    description: Determine the username behind a nickname
+    usage: /whois [nickname]
+  reboot:
     description: restart the server!
     usage: /Reboot help
+  gm:
+    description: Change your gamemode.
+    usage: /gm
 permissions:
   mmcessentials.*:
     description: Provide all the permissions.
@@ -57,3 +69,21 @@ permissions:
   mmcessentials.hideplugins.bypass:
     description: Bypass the hide plugin's function to show the real information.
     default: op
+  mmcessentials.prefix.set:
+    description: Set your own prefix.
+    default: op
+  mmcessentials.prefix.del:
+    description: Delete your own prefix.
+    default: op
+  mmcessentials.prefix.del.others:
+    description: Delete another players prefix.
+    default: op
+  mmcessentials.prefix.set.others:
+    description: Set another players prefix.
+    default: op
+  mmcessentials.command.gamemode:
+    description: Change your gamemode.
+    defailt: op
+  mmcessentials.prefix.protect:
+    description: Protect your prefix from being changed..
+    defailt: op

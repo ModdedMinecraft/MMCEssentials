@@ -10,7 +10,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import net.moddedminecraft.mmcessentials.Config;
@@ -185,7 +184,7 @@ public class RebootCommand  implements CommandExecutor {
 				}
 				
 				if (sender instanceof Player) {
-					if (!sender.hasPermission("mmcessentials.reboot.limit")) {
+					if (sender.hasPermission("mmcessentials.reboot.limit")) {
 						if (restartTime <= 59) {
 							Util.sendMessage(sender, "&cYou cannot set the timer lower than 60 seconds.");
 							return true;
@@ -197,7 +196,7 @@ public class RebootCommand  implements CommandExecutor {
 				}
 
 				plugin.log.info("[MMCEssentials] " + sender.toString() + " is setting a new restart time...");
-				plugin.logToFile("[MMCEssentials] " + sender.getName() + " is setting a new restart time...");
+				//plugin.logToFile("[MMCEssentials] " + sender.getName() + " is setting a new restart time...");
 				
 				if(Config.autoRestart) {
 					plugin.cancelTasks();
@@ -220,25 +219,28 @@ public class RebootCommand  implements CommandExecutor {
 				int seconds = (int)timeLeft % 60;
 
 				if (plugin.reason != null) {
-					Util.sendMessage(true, sender, "&bThe server will now be restarting in &f" + hours + "h" + minutes + "m" + seconds + "s, &bwith the reason: \n&d" + plugin.reason);
+					Util.sendMessage(sender, "&bThe server will now be restarting in &f" + hours + "h" + minutes + "m" + seconds + "s, &bwith the reason: \n&d" + plugin.reason);
 					//plugin.logToFile(sender.getName() + " scheduled a restart: " + hours + "h " + minutes + "m " + seconds + "s &bfrom now, with the reason: \n&d" + plugin.reason);
 				} else {
-					Util.sendMessage(true, sender, "&bThe server will now be restarting in &f" + hours + "h" + minutes + "m" + seconds + "s");
+					Util.sendMessage(sender, "&bThe server will now be restarting in &f" + hours + "h" + minutes + "m" + seconds + "s");
 					//plugin.logToFile(sender.getName() + " scheduled a restart: " + hours + "h " + minutes + "m " + seconds + "s from now");
 				}
 
 				return true;
 
 			} else if(args.length == 1 && args[0].equalsIgnoreCase("vote")) {
+				double timeLeft = (Config.restartInterval * 3600) - ((double)(System.currentTimeMillis() - plugin.startTimestamp) / 1000);
+				int hours = (int)(timeLeft / 3600);
+				int minutes = (int)((timeLeft - hours * 3600) / 60);
 
 				@SuppressWarnings("unused")
 				BukkitTask task;
 				if (!sender.hasPermission("mmcessentials.reboot.vote.bypass") && Bukkit.getOnlinePlayers().length < Config.minPlayers) {
-					Util.sendMessage(sender, ChatColor.RED + "There must be a minimum of 10 players online to start a vote");
+					Util.sendMessage(sender, ChatColor.RED + "There must be a minimum of " + Config.minPlayers + " players online to start a vote");
 				} 
 				else
 				{
-					if (plugin.isRestarting == true) {
+					if (plugin.isRestarting == true && minutes <= 10) {
 						Util.sendMessage(sender, ChatColor.RED + "The server is already restarting!");
 					}
 					else 
@@ -278,6 +280,7 @@ public class RebootCommand  implements CommandExecutor {
 											plugin.voteCancel = 0;
 											plugin.hasVoted.add(player);
 											plugin.yesVotes += 1;
+											plugin.noVotes = 0;
 											plugin.voteSeconds = 90;
 											plugin.displayVotes();
 										} else {
@@ -290,22 +293,18 @@ public class RebootCommand  implements CommandExecutor {
 										Util.broadcastMessage(ChatColor.DARK_AQUA + "---------- Restart ----------");
 										Util.broadcastMessage(ChatColor.GREEN + sender.getName() + ChatColor.AQUA + " has voted that the server should be restarted");
 										Util.broadcastMessage(ChatColor.GOLD + "Type " + ChatColor.GREEN + "/reboot yes" + ChatColor.GOLD + " if you agree");
-										Util.broadcastMessage(ChatColor.GOLD + "If you do not agree, Please ignore this.");
-										Util.broadcastMessage(ChatColor.GREEN + "" + Util.roundUP(Config.votePercent) + "%" + ChatColor.GOLD + " of the online players need to vote");
-										Util.broadcastMessage(ChatColor.GOLD + "yes for the server to restart.");
+										Util.broadcastMessage(ChatColor.GOLD + "Type " + ChatColor.RED + "/reboot no" + ChatColor.GOLD + " if you do not agree");
+										Util.broadcastMessage(ChatColor.GOLD + "If there are more yes votes than no, The server will be restarted! (minimum of 5)");
 										Util.broadcastMessage(ChatColor.AQUA + "You have " + ChatColor.GREEN + "90" + ChatColor.AQUA + " seconds to vote!");
 										Util.broadcastMessage(ChatColor.DARK_AQUA + "----------------------------");
 
-										//task = new BukkitRunnable()
-										//{
 										Timer voteTimer = new Timer();
 										voteTimer.schedule(new TimerTask() {
 											public void run()
 											{
 												@SuppressWarnings("unused")
 												BukkitTask task2;
-												double percent = (plugin.yesVotes/ (double)plugin.getServer().getOnlinePlayers().length)*100D;
-												if (percent >= Config.votePercent && plugin.voteCancel == 0)
+												if ((plugin.yesVotes > plugin.noVotes) && plugin.voteCancel == 0 && plugin.yesVotes >= 5)
 												{
 													Util.broadcastMessage("&f[&6Restart&f] &3The server will be restarted in&6 5 minutes &3because enough players have voted for a restart.");
 													Sboard.removeScoreboard();
@@ -324,47 +323,24 @@ public class RebootCommand  implements CommandExecutor {
 													if (plugin.voteCancel == 0) {
 														Util.broadcastMessage("&f[&6Restart&f] &3The server will not be restarted. Not enough people have voted.");
 														plugin.logToFile("The restart vote by: " + sender.getName() + " was not successful.");
-														plugin.yesVotes = 0;
-														plugin.cdTimer = 1;
-														plugin.voteStarted = false;
-														plugin.usingReason = 0;
-														Sboard.removeScoreboard();
-														plugin.hasVoted.clear();
-														Timer voteTimer = new Timer();
-														voteTimer.schedule(new TimerTask() {
-															public void run()
-															{
-																plugin.cdTimer = 0; 
-															}
-														}, (long) (Config.revoteTimer * 60000.0));
-														//task2 = new BukkitRunnable()
-														//{
-														//	public void run()
-														//	{
-														//		plugin.cdTimer = 0;  
-														//	}
-														//}.runTaskLater(plugin, (long) (Config.revoteTimer * 20 * 60L));
-													} else {
-														plugin.logToFile("The restart vote by: " + sender.getName() + " was canceled");
-														plugin.yesVotes = 0;
-														plugin.cdTimer = 1;
-														plugin.voteCancel = 0;
-														plugin.voteStarted = false;
-														plugin.usingReason = 0;
-														Sboard.removeScoreboard();
-														plugin.hasVoted.clear();
-														task2 = new BukkitRunnable()
-														{
-															public void run()
-															{
-																plugin.cdTimer = 0;  
-															}
-														}.runTaskLater(plugin, (long) (Config.revoteTimer * 20 * 60L));
 													}
+													plugin.yesVotes = 0;
+													plugin.cdTimer = 1;
+													plugin.voteCancel = 0;
+													plugin.voteStarted = false;
+													plugin.usingReason = 0;
+													Sboard.removeScoreboard();
+													plugin.hasVoted.clear();
+													Timer voteTimer = new Timer();
+													voteTimer.schedule(new TimerTask() {
+														public void run()
+														{
+															plugin.cdTimer = 0; 
+														}
+													}, (long) (Config.revoteTimer * 60000.0));
 												}
 											}
 										}, 90000);
-										//}.runTaskLater(plugin, 1200L);
 									}
 								}
 							}
@@ -392,6 +368,23 @@ public class RebootCommand  implements CommandExecutor {
 					}
 					plugin.displayVotes();
 					Util.sendMessage(sender, "You Voted Yes!");
+					return true;
+
+				} else {
+					Util.sendMessage(sender, "&4There is no vote running at the moment");
+					return true;
+				}
+			} else if (args.length == 1 && args[0].equalsIgnoreCase("no")) {
+				if (plugin.hasVoted.contains(sender)) {
+					Util.sendMessage(sender, "&4You have already voted!");
+					return true;
+				} else if (plugin.voteStarted == true) {
+					plugin.noVotes += 1;
+					if (sender instanceof Player) {
+						plugin.hasVoted.add((Player) sender);
+					}
+					plugin.displayVotes();
+					Util.sendMessage(sender, "You Voted No!");
 					return true;
 
 				} else {
@@ -502,6 +495,7 @@ public class RebootCommand  implements CommandExecutor {
 			
 			helpList.add(new Helplist("&3/reboot &btime - &7informs you how much time is left before restarting"));
 			helpList.add(new Helplist("&3/reboot &byes - &7vote yes to restart the server"));
+			helpList.add(new Helplist("&3/reboot &bno - &7vote no to restart the server"));
 
 			for(int i = 0; i < helpList.size(); i++) {
 				Util.sendMessage(sender, helpList.get(i).command);

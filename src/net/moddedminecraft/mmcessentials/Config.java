@@ -30,11 +30,14 @@ public class Config {
 	public static boolean voteAllowed = true;
 
 	static void loadConfiguration(MMCEssentials plugin) {
-
 		final FileConfiguration config = plugin.getConfig();
+		if (!plugin.getDataFolder().exists()) {
+			plugin.getDataFolder().mkdir();
+		}
+		plugin.saveDefaultConfig();
 		config.options().copyDefaults(true);
 		final int ver = config.getInt("version", 0);
-		
+
 		if (!plugin.plugins.isEmpty()) {
 			plugin.plugins.clear();
 		}
@@ -62,10 +65,9 @@ public class Config {
 		Config.revoteTimer = plugin.getConfig().getInt("timer.re-vote", 10);
 		Config.startVoteTimer = plugin.getConfig().getInt("timer.start-vote", 60);
 		Config.votePercent = plugin.getConfig().getInt("timer.vote-percent", 60);
-		Config.minPlayers = plugin.getConfig().getInt("timer.minimum-players", 10);
+		Config.minPlayers = plugin.getConfig().getInt("timer.minimum-players", 5);
 		Config.voteAllowed = plugin.getConfig().getBoolean("voting.enable", true);
 		Config.configVersion = plugin.getConfig().getInt("version", 0);
-
 		Config.hideplugins = plugin.getConfig().getBoolean("hideplugins.enabled", true);
 
 		for (String s : plugin.getConfig().getString("hideplugins.list").split(", ")) {

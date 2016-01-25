@@ -59,6 +59,7 @@ public class MMCEssentials extends JavaPlugin {
 	public static int cdTimer = 0;
 	public static boolean voteStarted = false;
 	public static int yesVotes = 0;
+	public static int noVotes = 0;
 	public static ArrayList<Player> hasVoted = new ArrayList<Player>();
 	public ArrayList<String> plugins = new ArrayList<String>();
 
@@ -99,8 +100,12 @@ public class MMCEssentials extends JavaPlugin {
 		}
 
 		Config.loadConfiguration(this);
+		getCommand("gm").setExecutor(new MMCECommand(plugin));
+		getCommand("delprefix").setExecutor(new MMCECommand(plugin));
+		getCommand("setprefix").setExecutor(new MMCECommand(plugin));
 		getCommand("blockinfo").setExecutor(new MMCECommand(plugin));
 		getCommand("mmce").setExecutor(new MMCECommand(plugin));
+		getCommand("whois").setExecutor(new MMCECommand(plugin));
 		getCommand("reboot").setExecutor(new RebootCommand(plugin));
 		pm.registerEvents(new PlayerListener(this), this);
 		pm.registerEvents(new CommandListener(this), this);
@@ -379,10 +384,10 @@ public class MMCEssentials extends JavaPlugin {
 		obj.setDisplaySlot(DisplaySlot.SIDEBAR);
 		obj.setDisplayName("Restart Vote");
 		Score yes = obj.getScore(ChatColor.GREEN + "Yes:");
-		Score no = obj.getScore(ChatColor.AQUA + "Required:");
+		Score no = obj.getScore(ChatColor.AQUA + "No:");
 		Score time = obj.getScore(ChatColor.RED + "Time Left:");
 		yes.setScore(yesVotes);
-		no.setScore(Util.roundUP(0.6 * playersOnline));
+		no.setScore(noVotes);
 		time.setScore(getTimeLeftInSeconds());
 
 		for (Player player : Bukkit.getOnlinePlayers()) {
