@@ -121,54 +121,56 @@ public class MMCECommand implements CommandExecutor {
 			}
 		}
 		else if (cmd.getName().equalsIgnoreCase("setprefix")) {
-			if (args.length == 1) {
-				if (sender instanceof Player) {
-					String contents = args[0].replaceAll("(&([a-f0-9]))", "").toLowerCase();
-					int length = args[0].replaceAll("(&([a-f0-9]))", "").length();
-					if (player.hasPermission("mmcessentials.prefix.set")) {
-						if (length <= 10  || player.hasPermission("mmcessentials.prefix.bypass")) {
-							if (!player.hasPermission("mmcessentials.prefix.staff") && (contents.contains("staff") || contents.contains("admin") || contents.contains("mod") || contents.contains("owner") || contents.contains("tmod"))) {
-								player.sendMessage(ChatColor.RED + "You cannot have a staff prefix.");
-								return true;
-							} else {
-								String setprefix = "manuaddv " + player.getName() + " prefix " + "'" + args[0] + "'";
-								Bukkit.dispatchCommand(Bukkit.getConsoleSender(), setprefix);
-								Util.sendMessage(sender, "&f[&6MMCPrefix&f] &3Prefix Set to: &f" + args[0]);
-								return true;
-							}
+			if (args.length >= 1) {
+				if (args.length == 1) {
+					if (sender instanceof Player) {
+						String contents = args[0].replaceAll("(&([a-f0-9]))", "").toLowerCase();
+						int length = args[0].replaceAll("(&([a-f0-9]))", "").length();
+						if (player.hasPermission("mmcessentials.prefix.set")) {
+							if (length <= 10  || player.hasPermission("mmcessentials.prefix.bypass")) {
+								if (!player.hasPermission("mmcessentials.prefix.staff") && (contents.contains("staff") || contents.contains("admin") || contents.contains("mod") || contents.contains("owner") || contents.contains("tmod"))) {
+									player.sendMessage(ChatColor.RED + "You cannot have a staff prefix.");
+									return true;
+								} else {
+									String setprefix = "manuaddv " + player.getName() + " prefix " + "'" + args[0] + "'";
+									Bukkit.dispatchCommand(Bukkit.getConsoleSender(), setprefix);
+									Util.sendMessage(sender, "&f[&6MMCPrefix&f] &3Prefix Set to: &f" + args[0]);
+									return true;
+								}
 
-						} else if (length > 10 && !player.hasPermission("mmcessentials.prefix.bypass")) {
+							} else if (length > 10 && !player.hasPermission("mmcessentials.prefix.bypass")) {
 
-							Util.sendMessage(sender, "&4You cannot have a prefix longer than 10 characters");
+								Util.sendMessage(sender, "&4You cannot have a prefix longer than 10 characters");
+								return true;
+							} 
+						} else {
+							Util.sendMessage(sender, "&4You do not have access to this command!");
 							return true;
-						} 
+						}
+					} else {
+						Util.sendMessage(sender, "The console is unable to use a prefix!");
+						return true;
+					}
+				} else if (args.length == 2) {
+					if (player.hasPermission("mmcessentials.prefix.set.others")) {
+						Player player2 = Bukkit.getPlayerExact(args[1]);
+						if (player2 == null) {
+							Util.sendMessage(sender, "&4The player specified isn't online!");
+							return true;
+						} else if (player2.hasPermission("mmcessentials.prefix.protected")) {
+							Util.sendMessage(sender, "&4The prefix of the specified player cannot be changed.");
+							return true;
+						} else {
+							String setprefix = "manuaddv " + player2.getName() + " prefix " + "'" + args[0] + "'";
+							Bukkit.dispatchCommand(Bukkit.getConsoleSender(), setprefix);
+							Util.sendMessage(sender, "&f[&6MMCPrefix&f] &3Prefix Set for &6" + player2.getName() + "&3!");
+							Util.sendMessage(sender, "&f[&6MMCPrefix&f] &3Prefix Set to: &f" + args[0]);
+							return true;
+						}
 					} else {
 						Util.sendMessage(sender, "&4You do not have access to this command!");
 						return true;
 					}
-				} else {
-					Util.sendMessage(sender, "The console is unable to use a prefix!");
-					return true;
-				}
-			} else if (args.length == 2) {
-				if (player.hasPermission("mmcessentials.prefix.set.others")) {
-					Player player2 = Bukkit.getPlayerExact(args[1]);
-					if (player2 == null) {
-						Util.sendMessage(sender, "&4The player specified isn't online!");
-						return true;
-					} else if (player2.hasPermission("mmcessentials.prefix.protected")) {
-						Util.sendMessage(sender, "&4The prefix of the specified player cannot be changed.");
-						return true;
-					} else {
-						String setprefix = "manuaddv " + player2.getName() + " prefix " + "'" + args[0] + "'";
-						Bukkit.dispatchCommand(Bukkit.getConsoleSender(), setprefix);
-						Util.sendMessage(sender, "&f[&6MMCPrefix&f] &3Prefix Set for &6" + player2.getName() + "&3!");
-						Util.sendMessage(sender, "&f[&6MMCPrefix&f] &3Prefix Set to: &f" + args[0]);
-						return true;
-					}
-				} else {
-					Util.sendMessage(sender, "&4You do not have access to this command!");
-					return true;
 				}
 			} else {
 				Util.sendMessage(sender, "&4Incorrect Usage! /setprefix [prefix]");
