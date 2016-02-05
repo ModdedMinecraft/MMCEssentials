@@ -152,25 +152,39 @@ public class MMCECommand implements CommandExecutor {
 						return true;
 					}
 				} else if (args.length == 2) {
-					if (player.hasPermission("mmcessentials.prefix.set.others")) {
+					if (sender instanceof Player) {
+						if (player.hasPermission("mmcessentials.prefix.set.others")) {
+							Player player2 = Bukkit.getPlayerExact(args[1]);
+							if (player2 == null) {
+								Util.sendMessage(sender, "&4The player specified isn't online!");
+								return true;
+							} else if (player2.hasPermission("mmcessentials.prefix.protected")) {
+								Util.sendMessage(sender, "&4The prefix of the specified player cannot be changed.");
+								return true;
+							} else {
+								String setprefix = "manuaddv " + player2.getName() + " prefix " + "'" + args[0] + "'";
+								Bukkit.dispatchCommand(Bukkit.getConsoleSender(), setprefix);
+								Util.sendMessage(sender, "&f[&6MMCPrefix&f] &3Prefix Set for &6" + player2.getName() + "&3!");
+								Util.sendMessage(sender, "&f[&6MMCPrefix&f] &3Prefix Set to: &f" + args[0]);
+								return true;
+							}
+						} else {
+							Util.sendMessage(sender, "&4You do not have access to this command!");
+							return true;
+						} 
+					} else {
 						Player player2 = Bukkit.getPlayerExact(args[1]);
 						if (player2 == null) {
 							Util.sendMessage(sender, "&4The player specified isn't online!");
 							return true;
-						} else if (player2.hasPermission("mmcessentials.prefix.protected")) {
-							Util.sendMessage(sender, "&4The prefix of the specified player cannot be changed.");
-							return true;
 						} else {
 							String setprefix = "manuaddv " + player2.getName() + " prefix " + "'" + args[0] + "'";
 							Bukkit.dispatchCommand(Bukkit.getConsoleSender(), setprefix);
-							Util.sendMessage(sender, "&f[&6MMCPrefix&f] &3Prefix Set for &6" + player2.getName() + "&3!");
-							Util.sendMessage(sender, "&f[&6MMCPrefix&f] &3Prefix Set to: &f" + args[0]);
+							Util.sendMessage(sender, "[MMCPrefix] Prefix Set for " + player2.getName() + "!");
+							Util.sendMessage(sender, "[MMCPrefix] Prefix Set to: " + args[0]);
 							return true;
 						}
-					} else {
-						Util.sendMessage(sender, "&4You do not have access to this command!");
-						return true;
-					}
+					} 
 				}
 			} else {
 				Util.sendMessage(sender, "&4Incorrect Usage! /setprefix [prefix]");
